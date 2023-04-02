@@ -6,8 +6,6 @@ is_dev = True
 router = Blueprint('router', 'router')
 
 def to_login_page():
-  if is_dev:
-    return redirect('http://confvinent.com:3000/')
   return send_from_directory(os.path.abspath('./flaskr/assets/login'), 'index.html')
 
 def to_main_page():

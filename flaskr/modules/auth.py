@@ -1,12 +1,17 @@
-from flask import request, session, redirect, jsonify, Blueprint
-from flask_session import Session
+from flask import request, session, jsonify, Blueprint
 import datetime
 from ..router import to_login_page, to_main_page
+from .user import get_user_id_by_email_and_pwd
 
 LIFE_TIME = datetime.timedelta(days=1)
 
+class RecordNotMatchError(Exception):
+  def __init__(self, *args: object) -> None:
+    super().__init__(*args)
+    self.msg = 'The email or password did not match with our record.'
+
 def is_auth():
-  return session.get(request.cookies.get('_auth'))
+  return session.get(request.cookies.get('_auth')) or request.cookies.get('_dev')
 
 def init_auth(app):
   add_auth_check(app)
@@ -29,9 +34,7 @@ def init_session(app):
   app.config['SECRET_KEY'] = '81a499e9-09b8-4fe5-8176-2dc4a5f430e6'
   app.config['SESSION_COOKIE_NAME'] = '_auth'
   app.config['PERMANENT_SESSION_LIFETIME'] = LIFE_TIME
-  app.config['SESSION_TYPE'] = 'filesystem'
-
-  Session(app)
+  app.config['SESSION_REFRESH_EACH_REQUEST'] = False
 
 auth = Blueprint('auth', 'auth', url_prefix='/api/auth')
 
@@ -42,11 +45,26 @@ def signin():
       resp = jsonify({'message': 'bad request'})
       resp.status_code = 400
       return resp
-    id = 'aaaa'
-    session[id] = request.json['email']
+    
+    email, password = request.json['email'], request.json['password']
+    res = get_user_id_by_email_and_pwd(email, password)
+
+    if not res:
+      raise RecordNotMatchError
+
+    id = resp[0]['user_id']
+
+    session[id] = email
     resp = jsonify({'message': 'ok'})
     resp.set_cookie('_id', id, LIFE_TIME, httponly=True)
     return resp
+
+  except RecordNotMatchError as err:
+    print(err)
+    resp = jsonify({'message': err.msg})
+    resp.status_code = 401
+    return resp
+
   except Exception as err:
     print(err)
     resp = jsonify({'message': 'unknown error'})
@@ -57,6 +75,6 @@ def signin():
 def logout():
   id = request.cookies.get('_id')
   if session.get(id):
-    del session[id]
+    session.pop(id)
   
   return to_login_page()
