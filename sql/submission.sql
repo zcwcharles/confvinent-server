@@ -4,23 +4,22 @@ create table SUBMISSION (
   sub_time bigint not null,
   title varchar(200) not null,
   status varchar(10) not null,
-  paper_link varchar(200) not null,
   con_id varchar(36),
   foreign key(con_id) references CONFERENCE(con_id) on delete cascade
 );
 
 -- add submission
 insert into SUBMISSION
-values ("sub_id", "sub_time", "title", "status", "paper_link", "con_id");
+values ("sub_id", UNIX_TIMESTAMP(NOW()), "title", "status", "con_id");
 
 -- get submission
-select * from SUBMISSION
-where sub_id="sub_id"
+select * from SUBMISSION left join CONFERENCE on SUBMISSION.con_id=CONFERENCE.con_id
+where sub_id="sub_id";
 
 -- update submission status
 update SUBMISSION
 set status="status"
-where sub_id="sub_id"
+where sub_id="sub_id";
 
 -- get submission list by user id
 select SUBMISSION.sub_id, CONFERENCE.submit_deadline, SUBMISSION.name, CONFERENCE.name as con_name, status from AUTHOR

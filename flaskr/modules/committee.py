@@ -13,7 +13,7 @@ def get_comit_id_by_user_id(user_id):
   )
   return '' if not res else res[0]['comit_id']
 
-@committee.route('/getcommitteeinfo', methods=['GET'])
+@committee.route('/committeeinfo', methods=['GET'])
 def get_committee_info():
   user_id = request.cookies.get('_id')
   comit_id = get_comit_id_by_user_id(user_id)
@@ -30,8 +30,11 @@ def get_committee_info():
     '''
   )
   resp = jsonify({
-    'committee': committee,
-    'members': [el['user_id'] for el in memebers],
+    'message': 'ok',
+    'data': {
+      'committee': committee,
+      'members': [el['user_id'] for el in memebers],
+    }
   })
   return resp
 

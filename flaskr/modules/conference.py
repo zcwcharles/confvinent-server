@@ -8,9 +8,17 @@ conference = Blueprint('conferencce', 'conferencce', url_prefix='/api/conferencc
 @conference.route('/create', methods=['POST'])
 def create():
   con_id = str(uuid4())
-  name, submit_deadline, review_deadline, review_number_for_each_paper, comit_id, create_time, end_time \
+  user_id = request.cookies.get('_id')
+  res = execute_select_query(
+    f'''
+      select comit_id from MEMBERS
+      where user_id="{user_id}";
+    '''
+  )
+  comit_id = res[0]['comit_id']
+  name, submit_deadline, review_deadline, review_number_for_each_paper, create_time, end_time \
     = request.json['name'], request.json['submitDeadline'], request.json['reviewDeadline'], \
-      request.json['reviewNumberForEachPaper'], request.json['comitId'], request.json['createTime'], \
+      request.json['reviewNumberForEachPaper'], request.json['createTime'], \
       request.json['endTime']
 
   execute_modify_query(
@@ -27,7 +35,7 @@ def create():
     'message': 'ok'
   })
 
-@conference.route('/getcurrentconference', methods=['GET'])
+@conference.route('/currentconference', methods=['GET'])
 def get_current_conference():
   user_id = request.cookies.get('_id')
   comit_id = get_comit_id_by_user_id(user_id)
@@ -39,9 +47,20 @@ def get_current_conference():
   )
   if not res:
     return jsonify({
-      'message': 'empty'
+      'message': 'ok',
     })
-  return jsonify(res[0])
+  return jsonify({
+    'message': 'ok',
+    'data': {
+      'conId': res[0]['con_id'],
+      'name': res[0]['name'],
+      'submitDeadline': res[0]['submit_deadline'],
+      'reviewDeadline': res[0]['review_deadline'],
+      'reviewNumberForEachPaper': res[0]['review_number_for_each_paper'],
+      'createTime': res[0]['create_time'],
+      'endTime': res[0]['end_time']
+    }
+  })
 
 @conference.route('/delete', methods=['POST'])
 def delete():
@@ -78,4 +97,12 @@ def submit_list():
       '''
     )
 
-  return jsonify(res)
+  return jsonify({
+    'message': 'ok',
+    'data': {
+      'submitList': [{
+        'conId': el['con_id'],
+        'name': el['name']
+      } for el in res]
+    }
+  })

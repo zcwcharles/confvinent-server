@@ -18,3 +18,8 @@ values ("user_id", "sub_id"), ("user_id", "sub_id");
 -- remove from author list
 delete from AUTHOR
 where user_id="user_id"
+
+-- get authors by sub id
+select first_name, last_name, email
+from AUTHOR left join USER on AUTHOR.user_id=USER.user_id
+where sub_id="sub_id";

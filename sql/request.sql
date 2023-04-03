@@ -25,3 +25,18 @@ where req="req_id";
 -- get request status
 select status from REQUEST
 where req_id="req_id";
+
+-- get request list
+select req_id, create_time, email, status, make_by from REQUEST
+left join USER on REQUEST.make_by = USER.user_id
+where comit_id="comit_id";
+
+-- get request by id
+select * from REQUEST
+left join USER on REQUEST.make_by = USER.user_id
+where req_id="req_id";
+
+-- get request list for non-admin
+select req_id, create_time, email, status, from REQUEST
+left join USER on REQUEST.make_by = USER.user_id
+where make_by="user_id";

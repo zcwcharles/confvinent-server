@@ -38,4 +38,10 @@ where user_id="user_id";
 select MEMBERS.user_id, cnt from MEMBERS left join (
   select distinct user_id, count(user_id) as cnt from REVIEW where decision is null group by user_id
 ) as DECISION_CNT on MEMBERS.user_id = DECISION_CNT.user_id
+where MEMBERS.comit_id="comit_id" and MEMBERS.comit_status="ACTIVE"
 order by cnt asc, cnt is null;
+
+-- get comit id and mamage comit id by user id
+select MEMBERS.comit_id, ADMINS.comit_id as manage_comit_id from MEMBERS
+left join ADMINS on MEMBERS.user_id=ADMINS_ID.user_id
+where MEMBERS.user_id="user_id";

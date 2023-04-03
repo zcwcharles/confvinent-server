@@ -11,7 +11,7 @@ class RecordNotMatchError(Exception):
     self.msg = 'The email or password did not match with our record.'
 
 def is_auth():
-  return session.get(request.cookies.get('_auth')) or request.cookies.get('_dev')
+  return session.get(request.cookies.get('_auth'))
 
 def init_auth(app):
   add_auth_check(app)
