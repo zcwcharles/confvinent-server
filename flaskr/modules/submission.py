@@ -3,12 +3,13 @@ import shutil
 from flask import Blueprint, jsonify, request, current_app
 from uuid import uuid4
 from ..db import execute_select_query, execute_modify_query
+from .auth import get_user_id_by_session
 
 submission = Blueprint('submission', 'submission', url_prefix='/api/submission')
 
 @submission.route('/submissionlist', methods=['GET'])
 def get_submission_list():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
       select SUBMISSION.sub_id, CONFERENCE.submit_deadline, SUBMISSION.name, CONFERENCE.name as con_name, status from AUTHOR

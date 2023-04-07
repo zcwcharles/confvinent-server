@@ -21,7 +21,7 @@ def create_app():
   app.config['MYSQL_USER'] = 'root'
   app.config['MYSQL_PASSWORD'] = 'abc123'
   app.config['MYSQL_DB'] = 'confvinent'
-  app.config['SERVER_NAME'] = 'confvinent.com:5000'
+  app.config['SERVER_NAME'] = 'confvinent.com:8000'
   app.config['PAPER_FOLDER'] = f'{os.getcwd()}/papers'
   app.config['TEMP_FOLDER'] = tmp_folder
 
@@ -32,7 +32,6 @@ def create_app():
 
   app.register_blueprint(router)
   app.register_blueprint(auth)
-  app.register_blueprint(user)
   app.register_blueprint(committee)
   app.register_blueprint(conference)
   app.register_blueprint(submission)

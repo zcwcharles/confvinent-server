@@ -1,7 +1,8 @@
 from flask import request, session, jsonify, Blueprint
+from uuid import uuid4
 import datetime
 from ..router import to_login_page, to_main_page
-from .user import get_user_id_by_email_and_pwd
+from ..db import execute_select_query, execute_modify_query
 
 LIFE_TIME = datetime.timedelta(days=1)
 
@@ -10,8 +11,11 @@ class RecordNotMatchError(Exception):
     super().__init__(*args)
     self.msg = 'The email or password did not match with our record.'
 
+def get_user_id_by_session():
+  return session.get('id')
+
 def is_auth():
-  return session.get(request.cookies.get('_auth'))
+  return get_user_id_by_session()
 
 def init_auth(app):
   add_auth_check(app)
@@ -38,6 +42,14 @@ def init_session(app):
 
 auth = Blueprint('auth', 'auth', url_prefix='/api/auth')
 
+def get_user_id_by_email_and_pwd(email, password):
+  return execute_select_query(
+    f'''
+      select user_id from USER
+      where email="{email}" and password="{password}";
+    '''
+  )
+
 @auth.route('/signin', methods=['POST'])
 def signin():
   try:
@@ -52,11 +64,10 @@ def signin():
     if not res:
       raise RecordNotMatchError
 
-    id = resp[0]['user_id']
+    id = res[0]['user_id']
 
-    session[id] = email
-    resp = jsonify({'message': 'ok'})
-    resp.set_cookie('_id', id, LIFE_TIME, httponly=True)
+    session['id'] = id
+    resp = to_main_page()
     return resp
 
   except RecordNotMatchError as err:
@@ -73,8 +84,27 @@ def signin():
 
 @auth.route('/logout', methods=['DELETE'])
 def logout():
-  id = request.cookies.get('_id')
+  id = get_user_id_by_session()
   if session.get(id):
     session.pop(id)
   
   return to_login_page()
+
+@auth.route('/signup', methods=['POST'])
+def signup():
+  user_id = str(uuid4())
+  first_name, last_name, address, organization, email, password = \
+    request.json['firstName'], request.json['lastName'], request.json['address'],\
+      request.json['organization'], request.json['email'], request.json['password']
+
+  execute_modify_query(
+    f'''
+      insert into USER
+      values ('{user_id}', '{email}', '{password}', '{first_name}', '{last_name}', '{address}', '{organization}');
+    '''
+  )
+
+  session['id'] = user_id
+  resp = to_main_page()
+
+  return resp

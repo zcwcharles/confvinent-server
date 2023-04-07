@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, jsonify, send_from_directory, request, current_app
 from ..db import execute_select_query, execute_modify_query
+from .auth import get_user_id_by_session
 
 DECISIONS = {
   'approve': 'APPROVE',
@@ -11,7 +12,7 @@ review = Blueprint('review', 'review', url_prefix='/api/review')
 
 @review.route('/reviewlist', methods=['GET'])
 def get_review_list():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
       select REVIEW.sub_id, review_deadline, title, status from REVIEW
@@ -37,9 +38,9 @@ def get_review_list():
 def get_review(sub_id):
   send_from_directory(os.path.join(current_app.config['PAPER_FOLDER'], f'{sub_id}.pdf'))
 
-@review.route('/submit/<sub_id>', method=['POST'])
+@review.route('/submit/<sub_id>', methods=['POST'])
 def submit_review(sub_id):
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
 
   decision = DECISIONS.get(request.json['decision'])
 

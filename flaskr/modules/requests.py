@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from uuid import uuid4
 from ..db import execute_select_query, execute_modify_query
+from .auth import get_user_id_by_session
 
 DECISION = {
   'approve': 'APPROVE',
@@ -11,7 +12,7 @@ requests = Blueprint('requests', 'requests', url_prefix='/api/requests')
 
 @requests.route('/requestlist', methods=['GET'])
 def get_request_list():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
       select MEMBERS.comit_id, ADMINS.comit_id as manage_comit_id from MEMBERS
@@ -89,7 +90,7 @@ def get_request(req_id):
 @requests.route('/submit')
 def submit_request():
   req_id = str(uuid4())
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
       select comit_id from MEMBERS
@@ -114,7 +115,7 @@ def submit_request():
 
 @requests.route('/process/<req_id>')
 def process(req_id):
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   decison = DECISION.get(request.json['decision'])
 
   res = execute_select_query(

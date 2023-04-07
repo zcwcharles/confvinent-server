@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from uuid import uuid4
+from .auth import get_user_id_by_session
 from ..db import execute_select_query, execute_modify_query
 
 committee = Blueprint('committee', 'committee', url_prefix='/api/committee')
@@ -15,7 +16,7 @@ def get_comit_id_by_user_id(user_id):
 
 @committee.route('/committeeinfo', methods=['GET'])
 def get_committee_info():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   [committee] = execute_select_query(
     f'''
@@ -40,7 +41,7 @@ def get_committee_info():
 
 @committee.route('/addmember', methods=['POST'])
 def add_member():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -54,7 +55,7 @@ def add_member():
 
 @committee.route('/inactivate', methods=['POST'])
 def inactivate_member():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -69,7 +70,7 @@ def inactivate_member():
 
 @committee.route('/activate', methods=['POST'])
 def activate_member():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -84,7 +85,7 @@ def activate_member():
 
 @committee.route('/deletemember', methods=['POST'])
 def delete_member():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -98,7 +99,7 @@ def delete_member():
 
 @committee.route('/addadmin', methods=['POST'])
 def add_admin():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -112,7 +113,7 @@ def add_admin():
 
 @committee.route('/deleteadmin', methods=['POST'])
 def delete_admin():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   execute_modify_query(
     f'''
@@ -136,4 +137,20 @@ def add_committee():
   )
   return jsonify({
     'message': 'ok'
+  })
+
+@committee.route('/committees', methods=['GET'])
+def get_committees():
+  res = execute_select_query(
+    f'''
+      select * from COMMITTEE;
+    '''
+  )
+
+  return jsonify({
+    'message': 'ok',
+    'data': [{
+      'id': res['comit_id'],
+      'name': res['name'],
+    } for el in res]
   })

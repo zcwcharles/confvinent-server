@@ -1,1 +1,1 @@
-flask --app flaskr run -h confvinent.com
+flask --app flaskr run -h confvinent.com -p 8000

@@ -2,13 +2,14 @@ from flask import Blueprint, jsonify, request
 from uuid import uuid4
 from ..db import execute_select_query, execute_modify_query
 from .committee import get_comit_id_by_user_id
+from .auth import get_user_id_by_session
 
 conference = Blueprint('conferencce', 'conferencce', url_prefix='/api/conferencce')
 
 @conference.route('/create', methods=['POST'])
 def create():
   con_id = str(uuid4())
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
       select comit_id from MEMBERS
@@ -37,7 +38,7 @@ def create():
 
 @conference.route('/currentconference', methods=['GET'])
 def get_current_conference():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   res = execute_select_query(
     f'''
@@ -79,7 +80,7 @@ def delete():
 
 @conference.route('/submitlist', methods=['GET'])
 def submit_list():
-  user_id = request.cookies.get('_id')
+  user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
   res = []
   if comit_id:
