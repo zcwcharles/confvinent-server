@@ -43,10 +43,11 @@ def get_committee_info():
 def add_member():
   user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
+  post_user_id = request.json['userId']
   execute_modify_query(
     f'''
       insert into MEMBERS
-      values ("{user_id}", "{comit_id}", "ACTIVE");
+      values ("{post_user_id}", "{comit_id}", "ACTIVE");
     '''
   )
   return jsonify({
@@ -57,11 +58,12 @@ def add_member():
 def inactivate_member():
   user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
+  post_user_id = request.json['userId']
   execute_modify_query(
     f'''
       update MEMBERS
       set comit_status="INACTIVE"
-      where user_id="{user_id}" and comit_id="{comit_id}";
+      where user_id="{post_user_id}" and comit_id="{comit_id}";
     '''
   )
   return jsonify({
@@ -72,11 +74,12 @@ def inactivate_member():
 def activate_member():
   user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
+  post_user_id = request.json['userId']
   execute_modify_query(
     f'''
       update MEMBERS
       set comit_status="ACTIVE"
-      where user_id="{user_id}" and comit_id="{comit_id}";
+      where user_id="{post_user_id}" and comit_id="{comit_id}";
     '''
   )
   return jsonify({
@@ -87,10 +90,11 @@ def activate_member():
 def delete_member():
   user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
+  post_user_id = request.json['userId']
   execute_modify_query(
     f'''
       delete from MEMBERS
-      where user_id="{user_id}" and comit_id="{comit_id}";
+      where user_id="{post_user_id}" and comit_id="{comit_id}";
     '''
   )
   return jsonify({
@@ -99,8 +103,8 @@ def delete_member():
 
 @committee.route('/addadmin', methods=['POST'])
 def add_admin():
-  user_id = get_user_id_by_session()
-  comit_id = get_comit_id_by_user_id(user_id)
+  user_id = request.json['userId']
+  comit_id = request.json['comitId']
   execute_modify_query(
     f'''
       insert into ADMINS
@@ -113,8 +117,8 @@ def add_admin():
 
 @committee.route('/deleteadmin', methods=['POST'])
 def delete_admin():
-  user_id = get_user_id_by_session()
-  comit_id = get_comit_id_by_user_id(user_id)
+  user_id = request.json['userId']
+  comit_id = request.json['comitId']
   execute_modify_query(
     f'''
       delete from ADMINS
@@ -149,8 +153,10 @@ def get_committees():
 
   return jsonify({
     'message': 'ok',
-    'data': [{
-      'id': res['comit_id'],
-      'name': res['name'],
-    } for el in res]
+    'data': {
+      'committees': [{
+        'id': el['comit_id'],
+        'name': el['name'],
+      } for el in res]
+    }
   })

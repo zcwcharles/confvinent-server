@@ -30,7 +30,7 @@ def init_auth(app):
 def add_auth_check(app):
   @app.before_request
   def check_auth_before_request():
-    if request.path != '/' and not request.path.startswith('/api/auth') and request.path != '/api/user/signup':
+    if request.path != '/' and not request.path.startswith('/api/auth'):
       if not is_auth():
         return to_login_page()
 
@@ -93,14 +93,16 @@ def logout():
 @auth.route('/signup', methods=['POST'])
 def signup():
   user_id = str(uuid4())
-  first_name, last_name, address, organization, email, password = \
-    request.json['firstName'], request.json['lastName'], request.json['address'],\
+  first_name, last_name, organization, email, password = \
+    request.json['firstName'], request.json['lastName'],\
       request.json['organization'], request.json['email'], request.json['password']
+
+  address = '' if 'address' not in request.json else request.json['address']
 
   execute_modify_query(
     f'''
       insert into USER
-      values ('{user_id}', '{email}', '{password}', '{first_name}', '{last_name}', '{address}', '{organization}');
+      values ("{user_id}", "{email}", "{password}", "{first_name}", "{last_name}", "{address}", "{organization}");
     '''
   )
 

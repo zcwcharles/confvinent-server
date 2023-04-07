@@ -67,7 +67,7 @@ def get_request_list():
       }
     })
 
-@requests.route('/get/<req_id>')
+@requests.route('/get/<req_id>', methods=['GET'])
 def get_request(req_id):
   res = execute_select_query(
     f'''
@@ -87,7 +87,7 @@ def get_request(req_id):
     }
   })
 
-@requests.route('/submit')
+@requests.route('/submit', methods=['POST'])
 def submit_request():
   req_id = str(uuid4())
   user_id = get_user_id_by_session()
@@ -113,7 +113,7 @@ def submit_request():
     'message': 'ok'
   })
 
-@requests.route('/process/<req_id>')
+@requests.route('/process/<req_id>', methods=['POST'])
 def process(req_id):
   user_id = get_user_id_by_session()
   decison = DECISION.get(request.json['decision'])
