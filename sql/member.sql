@@ -28,6 +28,7 @@ where user_id="user_id" and comit_id="comit_id";
 
 -- get all member
 select * from MEMBERS
+left join USER on MEMBERS.user_id=USER.user_id
 where comit_id="comit_id";
 
 -- get comit id by user id

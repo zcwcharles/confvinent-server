@@ -30,7 +30,7 @@ def init_auth(app):
 def add_auth_check(app):
   @app.before_request
   def check_auth_before_request():
-    if request.path != '/' and not request.path.startswith('/api/auth'):
+    if request.path != '/' and not request.path.startswith('/api/auth') and request.method != 'OPTIONS':
       if not is_auth():
         return to_login_page()
 

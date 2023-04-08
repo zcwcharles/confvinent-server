@@ -14,3 +14,8 @@ where comit_id="comit_id";
 
 -- get all committees
 select * from COMMITTEE;
+
+-- update committee name
+update COMMITTEE
+set name="name"
+where comit_id="comit_id";
