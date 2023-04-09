@@ -32,6 +32,7 @@ def create_app():
 
   app.register_blueprint(router)
   app.register_blueprint(auth)
+  app.register_blueprint(privilege)
   app.register_blueprint(committee)
   app.register_blueprint(conference)
   app.register_blueprint(submission)

@@ -10,24 +10,17 @@ conference = Blueprint('conferencce', 'conferencce', url_prefix='/api/conferencc
 def create():
   con_id = str(uuid4())
   user_id = get_user_id_by_session()
-  res = execute_select_query(
-    f'''
-      select comit_id from MEMBERS
-      where user_id="{user_id}";
-    '''
-  )
-  comit_id = res[0]['comit_id']
-  name, submit_deadline, review_deadline, review_number_for_each_paper, create_time, end_time \
+  comit_id = get_comit_id_by_user_id(user_id)
+  name, submit_deadline, review_deadline, review_number_for_each_paper, end_time \
     = request.json['name'], request.json['submitDeadline'], request.json['reviewDeadline'], \
-      request.json['reviewNumberForEachPaper'], request.json['createTime'], \
-      request.json['endTime']
+      request.json['reviewNumberForEachPaper'], request.json['endTime']
 
   execute_modify_query(
       f'''
-        insert into table CONFERENCE
+        insert into CONFERENCE
         values(
-          "{con_id}","{name}", "{submit_deadline}", "{review_deadline}",
-          "{review_number_for_each_paper}", "{comit_id}", "{create_time}", "{end_time}"
+          "{con_id}","{name}", {submit_deadline}, {review_deadline},
+          "{review_number_for_each_paper}", "{comit_id}", UNIX_TIMESTAMP() * 1000, {end_time}
         );
       '''
   )
@@ -43,7 +36,7 @@ def get_current_conference():
   res = execute_select_query(
     f'''
       select * from CONFERENCE
-      where end_time > UNIX_TIMESTAMP(NOW()) and comit_id="{comit_id}";
+      where end_time > UNIX_TIMESTAMP() * 1000 and comit_id="{comit_id}";
     '''
   )
   if not res:
@@ -87,14 +80,14 @@ def submit_list():
     res = execute_select_query(
       f'''
         select con_id, name from CONFERENCE
-        where submit_deadline > UNIX_TIMESTAMP(NOW()) and comit_id != "{comit_id}";
+        where submit_deadline > UNIX_TIMESTAMP() * 1000 and comit_id != "{comit_id}";
       '''
     )
   else:
     res = execute_select_query(
       f'''
         select con_id, name from CONFERENCE
-        where submit_deadline > UNIX_TIMESTAMP(NOW());
+        where submit_deadline > UNIX_TIMESTAMP() * 1000;
       '''
     )
 

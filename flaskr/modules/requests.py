@@ -105,7 +105,7 @@ def submit_request():
   execute_modify_query(
     f'''
       insert into REQUEST
-      values ("{req_id}", "{comit_id}", UNIX_TIMESTAMP(NOW()), "PENDING", null, "{reason}", "{user_id}", null);
+      values ("{req_id}", "{comit_id}", UNIX_TIMESTAMP() * 1000, "PENDING", null, "{reason}", "{user_id}", null);
     '''
   )
 

@@ -10,7 +10,7 @@ create table SUBMISSION (
 
 -- add submission
 insert into SUBMISSION
-values ("sub_id", UNIX_TIMESTAMP(NOW()), "title", "status", "con_id");
+values ("sub_id", UNIX_TIMESTAMP() * 1000, "title", "status", "con_id");
 
 -- get submission
 select * from SUBMISSION left join CONFERENCE on SUBMISSION.con_id=CONFERENCE.con_id

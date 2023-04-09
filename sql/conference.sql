@@ -24,11 +24,11 @@ where con_id="con_id";
 
 -- get ongoing conference
 select * from CONFERENCE
-where end_time > UNIX_TIMESTAMP(NOW()) and comit_id="comit_id";
+where end_time > UNIX_TIMESTAMP() * 1000 and comit_id="comit_id";
 
 -- get all conferences can be submitted to
 select con_id, name from CONFERENCE
-where submit_deadline > UNIX_TIMESTAMP(NOW());
+where submit_deadline > UNIX_TIMESTAMP() * 1000;
 
 -- get commit id and reviewer number
 select comit_id, review_number_for_each_paper from CONFERENCE

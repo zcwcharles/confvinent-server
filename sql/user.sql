@@ -20,3 +20,10 @@ where email="email" and password="password";
 -- get user by email
 select user_id from USER
 where email="email";
+
+-- get user group
+select MEMBERS.user_id as is_member, ADMINS.user_id as is_admin, SUPERADMIN.user_id as is_superadmin from USER
+left join MEMBERS on USER.user_id=MEMBERS.user_id
+left join ADMINS on USER.user_id=ADMINS.user_id
+left join SUPERADMIN on USER.user_id=SUPERADMIN.user_id
+where USER.user_id="user_id";

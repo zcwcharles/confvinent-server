@@ -28,23 +28,34 @@ def get_user_id_by_email(email):
 def get_committee_info():
   user_id = get_user_id_by_session()
   comit_id = get_comit_id_by_user_id(user_id)
-  [committee] = execute_select_query(
+  res = execute_select_query(
     f'''
       select * from COMMITTEE
       where comit_id="{comit_id}";
     '''
   )
-  memebers = execute_select_query(
+  members = execute_select_query(
     f'''
-      select user_id from MEMBERS
-      where comit_id="{comit_id}";
+      select USER.user_id, first_name, last_name, email, comit_status, ADMINS.comit_id from MEMBERS
+      left join USER on MEMBERS.user_id=USER.user_id
+      left join ADMINS on MEMBERS.user_id=ADMINS.user_id
+      where MEMBERS.comit_id="{comit_id}" and MEMBERS.user_id!="{user_id}";
     '''
   )
   resp = jsonify({
     'message': 'ok',
     'data': {
-      'committee': committee,
-      'members': [el['user_id'] for el in memebers],
+      'committee': {
+        'id': res[0]['comit_id'],
+        'name': res[0]['name'],
+      },
+      'members': [{
+        'id': el['user_id'],
+        'name': f'''{el['first_name']} {el['last_name']}''',
+        'email': el['email'],
+        'status': el['comit_status'],
+        'isAdmin': el['comit_id'] != None
+      } for el in members],
     }
   })
   return resp
@@ -98,44 +109,6 @@ def update(comit_id):
     'message': 'ok'
   })
 
-@committee.route('/addmember', methods=['POST'])
-def add_member():
-  user_id = get_user_id_by_session()
-  comit_id = get_comit_id_by_user_id(user_id)
-  email = request.json['email']
-
-  res = execute_select_query(
-    f'''
-      select user_id from USER
-      where email="{email}"
-    '''
-  )
-
-  if not res:
-    resp = jsonify({
-      'message': 'no such user'
-    })
-    resp.status_code = 404
-    return resp
-  
-  add_user_id = res[0]['user_id']
-
-  try:
-    execute_modify_query(
-      f'''
-        insert into MEMBERS
-        values ("{add_user_id}", "{comit_id}", "ACTIVE");
-      '''
-    )
-    return jsonify({
-      'message': 'ok'
-    })
-  except Exception as err:
-    print(err)
-    resp = jsonify({'message': 'unknown error'})
-    resp.status_code = 500
-    return resp
-
 @committee.route('/addmember/<comit_id>', methods=['POST'])
 def add_member_by_commitee(comit_id):
   email = request.json['email']
@@ -170,23 +143,6 @@ def add_member_by_commitee(comit_id):
     resp.status_code = 500
     return resp
 
-
-@committee.route('/deactivate', methods=['POST'])
-def inactivate_member():
-  user_id = get_user_id_by_session()
-  comit_id = get_comit_id_by_user_id(user_id)
-  post_user_id = request.json['userId']
-  execute_modify_query(
-    f'''
-      update MEMBERS
-      set comit_status="INACTIVE"
-      where user_id="{post_user_id}" and comit_id="{comit_id}";
-    '''
-  )
-  return jsonify({
-    'message': 'ok'
-  })
-
 @committee.route('/deactivate/<comit_id>', methods=['POST'])
 def inactivate_member_by_comit_id(comit_id):
   post_user_id = request.json['userId']
@@ -194,22 +150,6 @@ def inactivate_member_by_comit_id(comit_id):
     f'''
       update MEMBERS
       set comit_status="INACTIVE"
-      where user_id="{post_user_id}" and comit_id="{comit_id}";
-    '''
-  )
-  return jsonify({
-    'message': 'ok'
-  })
-
-@committee.route('/activate', methods=['POST'])
-def activate_member():
-  user_id = get_user_id_by_session()
-  comit_id = get_comit_id_by_user_id(user_id)
-  post_user_id = request.json['userId']
-  execute_modify_query(
-    f'''
-      update MEMBERS
-      set comit_status="ACTIVE"
       where user_id="{post_user_id}" and comit_id="{comit_id}";
     '''
   )
@@ -250,21 +190,6 @@ def delete_member():
 @committee.route('/addadmin/<comit_id>', methods=['POST'])
 def add_admin_by_committee(comit_id):
   user_id = request.json['userId']
-  execute_modify_query(
-    f'''
-      insert into ADMINS
-      values ("{user_id}", "{comit_id}")
-    '''
-  )
-  return jsonify({
-    'message': 'ok'
-  })
-
-@committee.route('/addadmin', methods=['POST'])
-def add_admin(comit_id):
-  user_id = request.json['userId']
-  comit_id = get_comit_id_by_user_id(user_id)
-
   execute_modify_query(
     f'''
       insert into ADMINS

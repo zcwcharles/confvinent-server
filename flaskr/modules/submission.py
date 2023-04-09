@@ -87,7 +87,7 @@ def create(sub_id):
   execute_modify_query(
     f'''
       insert into SUBMISSION
-      values ("{sub_id}", UNIX_TIMESTAMP(NOW()), "{title}", "PENDING", "{con_id}");
+      values ("{sub_id}", UNIX_TIMESTAMP() * 1000, "{title}", "PENDING", "{con_id}");
     '''
   )
 
