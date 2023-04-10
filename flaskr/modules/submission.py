@@ -1,6 +1,6 @@
 import os
 import shutil
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, send_from_directory, request, current_app
 from uuid import uuid4
 from ..db import execute_select_query, execute_modify_query
 from .auth import get_user_id_by_session
@@ -12,7 +12,7 @@ def get_submission_list():
   user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
-      select SUBMISSION.sub_id, CONFERENCE.submit_deadline, SUBMISSION.name, CONFERENCE.name as con_name, status from AUTHOR
+      select SUBMISSION.sub_id, CONFERENCE.submit_deadline, SUBMISSION.title, CONFERENCE.name as con_name, status from AUTHOR
       left join SUBMISSION on AUTHOR.sub_id=SUBMISSION.sub_id
       left join CONFERENCE on CONFERENCE.con_id=SUBMISSION.con_id
       where AUTHOR.user_id="{user_id}";
@@ -21,9 +21,9 @@ def get_submission_list():
   return jsonify({
     'message': 'ok',
     'data': {
-      'submissionList': [{
+      'submissions': [{
         'subId': el['sub_id'],
-        'name': el['name'],
+        'title': el['title'],
         'conName': el['con_name'],
         'status': el['status']
       } for el in res]
@@ -84,6 +84,18 @@ def assign_reviewers(sub_id, con_id):
 @submission.route('/submit/<sub_id>', methods=['POST'])
 def create(sub_id):
   title, con_id, authors = request.json['title'], request.json['conId'], request.json['authors']
+
+  user_id_list = []
+
+  for author_email in authors:
+    res = execute_select_query(
+      f'''
+        select user_id from USER
+        where email="{author_email}";
+      '''
+    )
+    user_id_list.append(res[0]['user_id'])
+  
   execute_modify_query(
     f'''
       insert into SUBMISSION
@@ -91,18 +103,6 @@ def create(sub_id):
     '''
   )
 
-  user_id_list = []
-
-  for author in authors:
-    email = author['email']
-    res = execute_select_query(
-      f'''
-        select user_id from USER
-        where email="{email}";
-      '''
-    )
-    user_id_list.append(res[0]['user_id'])
-  
   author_str_list = [f'("{user_id}", "{sub_id}")' for user_id in user_id_list]
   author_list_query = (', ').join(author_str_list)
   execute_modify_query(
@@ -127,13 +127,13 @@ def get(sub_id):
   sub_info = execute_select_query(
     f'''
       select * from SUBMISSION left join CONFERENCE on SUBMISSION.con_id=CONFERENCE.con_id
-      where sub_id="sub_id";
+      where sub_id="{sub_id}";
     '''
   )
 
   authors_info = execute_select_query(
     f'''
-      select first_name, last_name, email
+      select first_name, last_name, email, address, organization
       from AUTHOR left join USER on AUTHOR.user_id=USER.user_id
       where sub_id="{sub_id}";
 
@@ -143,12 +143,15 @@ def get(sub_id):
   authors = [{
     'firstName': author['first_name'],
     'lastName': author['last_name'],
-    'email': author['email']
+    'email': author['email'],
+    'address': author['address'],
+    'organization': author['organization'],
   } for author in authors_info]
 
   sub = {
     'title': sub_info[0]['title'],
     'conName': sub_info[0]['name'],
+    'status': sub_info[0]['status'],
     'authors': authors
   }
 
@@ -156,3 +159,7 @@ def get(sub_id):
     'message': 'ok',
     'data': sub
   })
+
+@submission.route('/getpaper/<sub_id>', methods=['GET'])
+def get_paper(sub_id):
+  return send_from_directory(current_app.config['PAPER_FOLDER'], f'{sub_id}.pdf')

@@ -82,12 +82,10 @@ def signin():
     resp.status_code = 500
     return resp
 
-@auth.route('/logout', methods=['DELETE'])
+@auth.route('/logout', methods=['HEAD'])
 def logout():
-  id = get_user_id_by_session()
-  if session.get(id):
-    session.pop(id)
-  
+  if session.get('id'):
+    session.pop('id')
   return to_login_page()
 
 @auth.route('/signup', methods=['POST'])

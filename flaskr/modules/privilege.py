@@ -9,7 +9,7 @@ def get_user_group():
   user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
-      select MEMBERS.user_id as is_member, ADMINS.user_id as is_admin, SUPERADMIN.user_id as is_superadmin, MEMBERS.comit_status="ACTIVE" as is_active
+      select first_name, last_name, MEMBERS.user_id as is_member, ADMINS.user_id as is_admin, SUPERADMIN.user_id as is_superadmin, MEMBERS.comit_status="ACTIVE" as is_active
       from USER
       left join MEMBERS on USER.user_id=MEMBERS.user_id
       left join ADMINS on USER.user_id=ADMINS.user_id
@@ -29,6 +29,7 @@ def get_user_group():
   return jsonify({
     'message': 'ok',
     'data': {
-      'userGroup': group
+      'userGroup': group,
+      'name': (f'''{res[0]['first_name'][0]}{res[0]['last_name'][0]}''').upper()
     }
   })

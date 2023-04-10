@@ -4,8 +4,8 @@ from ..db import execute_select_query, execute_modify_query
 from .auth import get_user_id_by_session
 
 DECISIONS = {
-  'approve': 'APPROVE',
-  'decline': 'DECLINE'
+  'approve': 'APPROVED',
+  'decline': 'DECLINED'
 }
 
 review = Blueprint('review', 'review', url_prefix='/api/review')
@@ -15,7 +15,7 @@ def get_review_list():
   user_id = get_user_id_by_session()
   res = execute_select_query(
     f'''
-      select REVIEW.sub_id, review_deadline, title, status from REVIEW
+      select REVIEW.sub_id, CONFERENCE.name as conName, review_deadline, title, status, decision from REVIEW
       left join SUBMISSION on SUBMISSION.sub_id = REVIEW.sub_id
       left join CONFERENCE on CONFERENCE.con_id = SUBMISSION.con_id
       where user_id="{user_id}";
@@ -25,11 +25,13 @@ def get_review_list():
   return jsonify({
     'message': 'ok',
     'data': {
-      'reviewList': [{
+      'reviews': [{
         'subId': review['sub_id'],
         'reviewDeadline': review['review_deadline'],
         'title': review['title'],
-        'status': review['status']
+        'status': review['status'],
+        'conName': review['conName'],
+        'decision': review['decision'],
       } for review in res]
     }
   })
@@ -56,7 +58,7 @@ def submit_review(sub_id):
   res = execute_select_query(
     f'''
       select decision from REVIEW
-      where sub_id="sub_id";
+      where sub_id="{sub_id}";
     '''
   )
 
@@ -64,9 +66,9 @@ def submit_review(sub_id):
   declined = 0
 
   for el in res:
-    if el['decison'] == DECISIONS['approve']:
+    if el['decision'] == DECISIONS['approve']:
       approved += 1
-    elif el['decison'] == DECISIONS['decline']:
+    elif el['decision'] == DECISIONS['decline']:
       declined += 1
   
   if approved > len(res) // 2:
