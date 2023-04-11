@@ -27,3 +27,8 @@ left join MEMBERS on USER.user_id=MEMBERS.user_id
 left join ADMINS on USER.user_id=ADMINS.user_id
 left join SUPERADMIN on USER.user_id=SUPERADMIN.user_id
 where USER.user_id="user_id";
+
+-- change password
+update USER
+set password="password"
+where email="email";
