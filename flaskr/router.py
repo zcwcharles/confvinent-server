@@ -22,5 +22,6 @@ def handle_assets(app):
       return send_from_directory(os.path.abspath('./flaskr'), request.path[1:])
 
 @router.route('/main')
-def main_page():
+@router.route('/main/<module>')
+def main_page(module):
   return send_from_directory(os.path.abspath('./flaskr/assets/main'), 'index.html')
